@@ -12,7 +12,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TasksViewModel @Inject constructor(
 
-): ViewModel() {
+) : ViewModel() {
     private val _showTaskDialog = MutableLiveData<Boolean>()
     val showTaskDialog: LiveData<Boolean> = _showTaskDialog
 
@@ -25,32 +25,36 @@ class TasksViewModel @Inject constructor(
     private val _task = MutableLiveData<String>()
     val task: LiveData<String> = _task
 
-    fun onShowTaskDialog(){ _showTaskDialog.value = true }
+    fun onShowTaskDialog() {
+        _showTaskDialog.value = true
+    }
 
-    fun onHideTaskDialog() { _showTaskDialog.value = false }
+    fun onHideTaskDialog() {
+        _showTaskDialog.value = false
+    }
 
     fun onTaskChanged(text: String) {
         _addTaskEnable.value = text.isNotEmpty()
         _task.value = text
     }
 
-    fun onCheckBoxTaskSelected(task: TaskModel){
+    fun onCheckBoxTaskSelected(task: TaskModel) {
         val index = _taskList.value.indexOf(task)
         val updatedTaskList = _taskList.value.toMutableList()
-        updatedTaskList[index] = updatedTaskList[index].let{ taskSelected ->
+        updatedTaskList[index] = updatedTaskList[index].let { taskSelected ->
             taskSelected.copy(selected = !taskSelected.selected)
         }
         _taskList.value = updatedTaskList
     }
 
-    fun onAddTask(task: TaskModel){
+    fun onAddTask(task: TaskModel) {
         _taskList.value += task
         _showTaskDialog.value = false
         onTaskChanged("")
     }
 
-    fun onTaskDeleted(task: TaskModel){
-        val taskDeleted = _taskList.value.find{
+    fun onTaskDeleted(task: TaskModel) {
+        val taskDeleted = _taskList.value.find {
             it.id == task.id
         }
         _taskList.value -= taskDeleted!!
