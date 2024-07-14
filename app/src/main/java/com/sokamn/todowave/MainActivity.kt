@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ToDoWaveTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    TasksScreen(tasksViewModel)
+                    TasksScreen()
                 }
             }
         }
