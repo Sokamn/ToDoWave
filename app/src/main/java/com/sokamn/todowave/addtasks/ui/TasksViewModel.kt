@@ -5,12 +5,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sokamn.todowave.addtasks.domain.AddTaskUseCase
+import com.sokamn.todowave.addtasks.domain.DeleteTaskUseCase
 import com.sokamn.todowave.addtasks.domain.GetTaskListUseCase
+import com.sokamn.todowave.addtasks.domain.UpdateTaskUseCase
 import com.sokamn.todowave.addtasks.ui.model.TaskModel
 import com.sokamn.todowave.addtasks.ui.model.TasksUiState
-import com.sokamn.todowave.addtasks.ui.model.TasksUiState.*
+import com.sokamn.todowave.addtasks.ui.model.TasksUiState.Error
+import com.sokamn.todowave.addtasks.ui.model.TasksUiState.Loading
+import com.sokamn.todowave.addtasks.ui.model.TasksUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -22,6 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TasksViewModel @Inject constructor(
     private val addTaskUseCase: AddTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
     getTasksUseCase: GetTaskListUseCase
 ) : ViewModel() {
 
@@ -34,9 +39,6 @@ class TasksViewModel @Inject constructor(
 
     private val _addTaskEnable = MutableLiveData<Boolean>()
     val addTaskEnable: LiveData<Boolean> = _addTaskEnable
-
-    private val _taskList = MutableStateFlow<List<TaskModel>>(emptyList())
-    val taskList: StateFlow<List<TaskModel>> = _taskList
 
     private val _task = MutableLiveData<String>()
     val task: LiveData<String> = _task
@@ -55,29 +57,17 @@ class TasksViewModel @Inject constructor(
     }
 
     fun onCheckBoxTaskSelected(task: TaskModel) {
-        val index = _taskList.value.indexOf(task)
-        val updatedTaskList = _taskList.value.toMutableList()
-        updatedTaskList[index] = updatedTaskList[index].let { taskSelected ->
-            taskSelected.copy(selected = !taskSelected.selected)
-        }
-        _taskList.value = updatedTaskList
+        viewModelScope.launch { updateTaskUseCase(task.copy(selected = !task.selected)) }
     }
 
     fun onAddTask(task: TaskModel) {
-        _taskList.value += task
         _showTaskDialog.value = false
         onTaskChanged("")
-
-        viewModelScope.launch {
-            addTaskUseCase(task)
-        }
+        viewModelScope.launch { addTaskUseCase(task) }
     }
 
     fun onTaskDeleted(task: TaskModel) {
-        val taskDeleted = _taskList.value.find {
-            it.id == task.id
-        }
-        _taskList.value -= taskDeleted!!
+        viewModelScope.launch { deleteTaskUseCase(task) }
     }
 
 }
